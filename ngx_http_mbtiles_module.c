@@ -45,7 +45,7 @@ char *ngx_str_t_to_char_ptr(ngx_str_t str);
 static char *ngx_http_mbtiles_enable(ngx_conf_t *cf, void *cmd, void *conf);
 static ngx_int_t ngx_http_mbtiles_handler(ngx_http_request_t *r);
 
-static ngx_conf_post_handler_pt ngx_http_mbtiles_enable_p = ngx_http_mbtiles_enable;
+// static ngx_conf_post_handler_pt ngx_http_mbtiles_enable_p = ngx_http_mbtiles_enable;
 
 /**
  * This module let you read map tiles directly from a mbtiles file
@@ -234,7 +234,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     free(mbtiles_file_path);
 
     /* prepare our sql statement */
-    const char* select_query = "select tile_data from tiles where zoom_level=? and tile_column=? and tile_row=?";
+    const char* select_query = "select tile_data from tiles where zoom_level=? and tile_column=? and (1<<zoom_level)-tile_row-1=cast(? as integer)";
     const char* tail;
     if (SQLITE_OK != (sqlite3_ret = sqlite3_prepare_v2(sqlite_handle, select_query, strlen(select_query), &sqlite_stmt, &tail))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not prepare tile data sql statelemt");
@@ -253,13 +253,13 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
 
     /* execute query */
     if (SQLITE_ROW != (sqlite3_ret = sqlite3_step(sqlite_stmt))) {
-        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%s, column=%s, row=%s", sqlite3_ret, mbtiles_zoom.data, mbtiles_column.data, mbtiles_row.data);
+	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%s, column=%s, row=%s", sqlite3_ret, mbtiles_zoom.data, mbtiles_column.data, mbtiles_row.data);
         sqlite3_close(sqlite_handle);
-        return NGX_HTTP_NOT_FOUND;
+        return NGX_HTTP_NO_CONTENT;
     }
 
     /* allocate buffer for the file content */
-    tile_read_bytes = sqlite3_column_bytes(sqlite_stmt, 1);
+    tile_read_bytes = sqlite3_column_bytes(sqlite_stmt, 0);
     if (!(tile_content = ngx_palloc(r->pool, tile_read_bytes))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Failed to allocate response buffer memory.");
         sqlite3_close(sqlite_handle);
@@ -268,7 +268,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
             ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Read %i bytes for tile.", tile_read_bytes);
 
     /* copy the result into our internal buffer */
-    ngx_memcpy(tile_content, sqlite3_column_blob(sqlite_stmt, 1), tile_read_bytes);
+    ngx_memcpy(tile_content, sqlite3_column_blob(sqlite_stmt, 0), tile_read_bytes);
  
     /* close sqlite database */
     sqlite3_close(sqlite_handle);
