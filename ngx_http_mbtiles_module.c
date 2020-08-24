@@ -265,7 +265,6 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
-            ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Read %i bytes for tile.", tile_read_bytes);
 
     /* copy the result into our internal buffer */
     ngx_memcpy(tile_content, sqlite3_column_blob(sqlite_stmt, 0), tile_read_bytes);
@@ -276,8 +275,8 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     /* set the content-type header. */
     if (ngx_http_set_content_type(r) != NGX_OK) {
         // TODO: Read the content type from the mbtiles file and adjust mime type accordingly
-        r->headers_out.content_type.len = sizeof("application/vnd.mapbox-vector-tile") - 1;
-        r->headers_out.content_type.data = (u_char *) "application/vnd.mapbox-vector-tile";
+        r->headers_out.content_type.len = sizeof("application/gzip") - 1;
+        r->headers_out.content_type.data = (u_char *) "application/gzip";
     }
 
     /* allocate a new buffer for sending out the reply. */
