@@ -273,10 +273,12 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     sqlite3_close(sqlite_handle);
 
     /* set the content-type header. */
-    if (ngx_http_set_content_type(r) != NGX_OK) {
+    if (ngx_http_set_content_type(r) == NGX_OK) {
         // TODO: Read the content type from the mbtiles file and adjust mime type accordingly
         r->headers_out.content_type.len = sizeof("application/gzip") - 1;
         r->headers_out.content_type.data = (u_char *) "application/gzip";
+    } else {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
     /* allocate a new buffer for sending out the reply. */
