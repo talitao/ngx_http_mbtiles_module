@@ -198,6 +198,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     unsigned int  sqlite3_ret;
     unsigned char *tile_content;
     unsigned int  tile_read_bytes;
+    unsigned int  tile_zoom, tile_row, tile_column;
 
     ngx_http_mbtiles_loc_conf_t *mbtiles_config;
     mbtiles_config = ngx_http_get_module_loc_conf(r, ngx_http_mbtiles_module);
@@ -244,9 +245,12 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     }
 
     /* bind our values */
-    if (SQLITE_OK != (sqlite3_ret = sqlite3_bind_text(sqlite_stmt, 1, (const char *) mbtiles_zoom.data, mbtiles_zoom.len, SQLITE_STATIC)
-            || SQLITE_OK != sqlite3_bind_text(sqlite_stmt, 2, (const char *) mbtiles_column.data, mbtiles_column.len, SQLITE_STATIC)
-            || SQLITE_OK != sqlite3_bind_text(sqlite_stmt, 3, (const char *) mbtiles_row.data, mbtiles_row.len, SQLITE_STATIC))) {
+    sscanf( mbtiles_zoom.data, "%u", &tile_zoom);
+    sscanf( mbtiles_column.data, "%u", &tile_column);
+    sscanf( mbtiles_row.data, "%u", &tile_row);
+    if (SQLITE_OK != (sqlite3_ret = sqlite3_bind_int(sqlite_stmt, 1, tile_zoom)
+            || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 2, tile_column)
+            || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 3, tile_row))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not bind values to prepared statement");
         sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
