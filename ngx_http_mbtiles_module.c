@@ -238,6 +238,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     const char* tail;
     if (SQLITE_OK != (sqlite3_ret = sqlite3_prepare_v2(sqlite_handle, select_query, strlen(select_query), &sqlite_stmt, &tail))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not prepare tile data sql statelemt");
+        sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -247,6 +248,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
             || SQLITE_OK != sqlite3_bind_text(sqlite_stmt, 2, (const char *) mbtiles_column.data, mbtiles_column.len, SQLITE_STATIC)
             || SQLITE_OK != sqlite3_bind_text(sqlite_stmt, 3, (const char *) mbtiles_row.data, mbtiles_row.len, SQLITE_STATIC))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not bind values to prepared statement");
+        sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -254,6 +256,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     /* execute query */
     if (SQLITE_ROW != (sqlite3_ret = sqlite3_step(sqlite_stmt))) {
 	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%s, column=%s, row=%s", sqlite3_ret, mbtiles_zoom.data, mbtiles_column.data, mbtiles_row.data);
+        sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_NO_CONTENT;
     }
@@ -262,6 +265,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     tile_read_bytes = sqlite3_column_bytes(sqlite_stmt, 0);
     if (!(tile_content = ngx_palloc(r->pool, tile_read_bytes))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Failed to allocate response buffer memory.");
+        sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -270,6 +274,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     ngx_memcpy(tile_content, sqlite3_column_blob(sqlite_stmt, 0), tile_read_bytes);
  
     /* close sqlite database */
+    sqlite3_finalize(sqlite_stmt);
     sqlite3_close(sqlite_handle);
 
     /* set the content-type header. */
