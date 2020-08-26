@@ -236,7 +236,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     free(mbtiles_file_path);
 
     /* prepare our sql statement */
-    const char* select_query = "select tile_data from tiles where zoom_level=? and tile_column=? and (1<<zoom_level)-tile_row-1=cast(? as integer)";
+    const char* select_query = "select tile_data from tiles where zoom_level=? and tile_column=? and tile_row=?";
     const char* tail;
     if (SQLITE_OK != (sqlite3_ret = sqlite3_prepare_v2(sqlite_handle, select_query, strlen(select_query), &sqlite_stmt, &tail))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not prepare tile data sql statelemt");
@@ -247,11 +247,12 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
 
     /* bind our values */
     tile_zoom = strtoul((const char *)mbtiles_zoom.data, NULL, 10);
-    tile_row = strtoul((const char *)mbtiles_row.data, NULL, 10);
     tile_column = strtoul((const char *)mbtiles_column.data, NULL, 10);
+    tile_row = strtoul((const char *)mbtiles_row.data, NULL, 10);
+    tms_tile_row = (1<<zoom_level)-tile_row-1;
     if (SQLITE_OK != (sqlite3_ret = sqlite3_bind_int(sqlite_stmt, 1, tile_zoom)
             || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 2, tile_column)
-            || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 3, tile_row))) {
+            || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 3, tms_tile_row))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not bind values to prepared statement");
         sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
@@ -260,7 +261,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
 
     /* execute query */
     if (SQLITE_ROW != (sqlite3_ret = sqlite3_step(sqlite_stmt))) {
-	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%hd, column=%hd, row=%hd (TMS: %hd/%hd/%hd)", sqlite3_ret, tile_zoom, tile_column, tile_row, tile_zoom, tile_column, (1<<tile_zoom)-tile_row-1);
+	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%d, column=%d, row=%d (TMS: %d/%d/%d)", sqlite3_ret, tile_zoom, tile_column, tile_row, tile_zoom, tile_column, tms_tile_row);
         sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_NO_CONTENT;
