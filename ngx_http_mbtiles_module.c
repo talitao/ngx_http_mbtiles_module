@@ -198,7 +198,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     unsigned int  sqlite3_ret;
     unsigned char *tile_content;
     unsigned int  tile_read_bytes;
-    unsigned int  tile_zoom, tile_row, tile_column;
+    unsigned long  tile_zoom, tile_row, tile_column;
 
     ngx_http_mbtiles_loc_conf_t *mbtiles_config;
     mbtiles_config = ngx_http_get_module_loc_conf(r, ngx_http_mbtiles_module);
@@ -245,9 +245,9 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     }
 
     /* bind our values */
-    sscanf( mbtiles_zoom.data, "%u", &tile_zoom);
-    sscanf( mbtiles_column.data, "%u", &tile_column);
-    sscanf( mbtiles_row.data, "%u", &tile_row);
+    tile_zoom = strtoul(mbtiles_zoom.data, NULL, 10);
+    tile_row = strtoul(mbtiles_row.data, NULL, 10);
+    tile_column = strtoul(mbtiles_column.data, NULL, 10);
     if (SQLITE_OK != (sqlite3_ret = sqlite3_bind_int(sqlite_stmt, 1, tile_zoom)
             || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 2, tile_column)
             || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 3, tile_row))) {
