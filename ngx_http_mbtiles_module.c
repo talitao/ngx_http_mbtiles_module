@@ -227,7 +227,6 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     }
 
     /* try to open mbtiles file */
-    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Opening '%s'...", mbtiles_file_path);
     if (SQLITE_OK != (sqlite3_ret = sqlite3_open_v2(mbtiles_file_path, &sqlite_handle, SQLITE_OPEN_READONLY, NULL))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Opening '%s' failed", mbtiles_file_path);
         free(mbtiles_file_path);
