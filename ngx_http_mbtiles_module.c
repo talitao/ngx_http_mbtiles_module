@@ -245,9 +245,9 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     }
 
     /* bind our values */
-    tile_zoom = strtoul(mbtiles_zoom.data, NULL, 10);
-    tile_row = strtoul(mbtiles_row.data, NULL, 10);
-    tile_column = strtoul(mbtiles_column.data, NULL, 10);
+    tile_zoom = strtoul((const char *)mbtiles_zoom.data, NULL, 10);
+    tile_row = strtoul((const char *)mbtiles_row.data, NULL, 10);
+    tile_column = strtoul((const char *)mbtiles_column.data, NULL, 10);
     if (SQLITE_OK != (sqlite3_ret = sqlite3_bind_int(sqlite_stmt, 1, tile_zoom)
             || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 2, tile_column)
             || SQLITE_OK != sqlite3_bind_int(sqlite_stmt, 3, tile_row))) {
