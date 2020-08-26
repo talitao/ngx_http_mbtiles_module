@@ -227,6 +227,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     }
 
     /* try to open mbtiles file */
+    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Opening '%s'...", mbtiles_file_path);
     if (SQLITE_OK != (sqlite3_ret = sqlite3_open_v2(mbtiles_file_path, &sqlite_handle, SQLITE_OPEN_READONLY, NULL))) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Opening '%s' failed", mbtiles_file_path);
         free(mbtiles_file_path);
@@ -259,7 +260,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
 
     /* execute query */
     if (SQLITE_ROW != (sqlite3_ret = sqlite3_step(sqlite_stmt))) {
-	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%s, column=%s, row=%s", sqlite3_ret, mbtiles_zoom.data, mbtiles_column.data, mbtiles_row.data);
+	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%lu, column=%lu, row=%lu", sqlite3_ret, tile_zoom, tile_column, tile_row);
         sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_NO_CONTENT;
