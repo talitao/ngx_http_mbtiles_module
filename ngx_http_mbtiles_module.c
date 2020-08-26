@@ -260,7 +260,7 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
 
     /* execute query */
     if (SQLITE_ROW != (sqlite3_ret = sqlite3_step(sqlite_stmt))) {
-	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%d, column=%d, row=%d (TMS: %d/%d/%d)", sqlite3_ret, tile_zoom, tile_column, tile_row, tile_zoom, tile_column, (1<<tile_zoom)-tile_row-1);
+	ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not find a tile (ret=%i) for zoom=%hd, column=%hd, row=%hd (TMS: %hd/%hd/%hd)", sqlite3_ret, tile_zoom, tile_column, tile_row, tile_zoom, tile_column, (1<<tile_zoom)-tile_row-1);
         sqlite3_finalize(sqlite_stmt);
         sqlite3_close(sqlite_handle);
         return NGX_HTTP_NO_CONTENT;
