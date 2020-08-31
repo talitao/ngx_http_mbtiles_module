@@ -29,6 +29,12 @@ You need to have a `sqlite3-dev` package installed. On Ubuntu or Debian you can 
 apt-get install libsqlite3-dev
 ```
 
+## Limitations
+
+At the moment this expects that the tile content fetched from the mbtiles file is gzip compressed. 
+
+There may be some security issues around the regex matching ($1/$2/$3/$4), but 1) casting tile coordinates to `short`s before fetching from the mbtiles should reduce some of these concerns, 2) you should probably not have sensitive data mixed in with your tilesets (ie serve tiles from a dedicated tile directory and set your document root to be the base of this directory).
+
 ## Changes
 
 08/2020: Various cleanups: restricted the $2/$3/$4 references to be numeric and implemented ZXY->TMS translation so that this module would work with libraries like Mapbox GL JS that request tiles in ZXY notation. Explicitly finalize the SQLite statement to close a memory leak. Changed missing tile HTTP response code to 204 No Content instead of 404 Not Found.
