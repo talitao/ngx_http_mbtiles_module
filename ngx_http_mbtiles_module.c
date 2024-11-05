@@ -198,7 +198,8 @@ ngx_http_mbtiles_handler(ngx_http_request_t *r)
     unsigned int  sqlite3_ret;
     unsigned char *tile_content;
     unsigned int  tile_read_bytes;
-    short         tile_zoom, tile_row, tile_column, tms_tile_row;
+    unsigned char tile_zoom
+    int           tile_row, tile_column, tms_tile_row;
 
     ngx_http_mbtiles_loc_conf_t *mbtiles_config;
     mbtiles_config = ngx_http_get_module_loc_conf(r, ngx_http_mbtiles_module);
