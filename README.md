@@ -37,6 +37,8 @@ There may be some security issues around the regex matching ($1/$2/$3/$4), but 1
 
 ## Changes
 
+11/2024: Changed `tile_zoom` to `char` (since zoom levels never exceed 127) and `tile_row`, `tile_column`, `tms_tile_row` to `int` (to support coordinates higher than 32767).
+
 08/2020: Various cleanups: restricted the $2/$3/$4 references to be numeric and implemented ZXY->TMS translation so that this module would work with libraries like Mapbox GL JS that request tiles in ZXY notation. Explicitly finalize the SQLite statement to close a memory leak. Changed missing tile HTTP response code to 204 No Content instead of 404 Not Found.
 
 Much of the work on this was originally done by @pace (~2017). 
